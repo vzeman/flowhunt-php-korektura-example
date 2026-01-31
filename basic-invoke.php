@@ -183,8 +183,12 @@ EOT;
 
                                         // Check if this is the korektura file
                                         if (stripos($fileName, 'korektura') !== false) {
-                                            // Construct the download URL
-                                            $korekturaFileUrl = "https://urlslab-delivery.s3.eu-central-1.amazonaws.com/flow_attachments/$workspaceId/$flowId/$sessionId/$fileName";
+                                            // Use SDK's download URL if available, otherwise construct manually
+                                            if (method_exists($artefact, 'getDownloadUrl') && $artefact->getDownloadUrl()) {
+                                                $korekturaFileUrl = $artefact->getDownloadUrl();
+                                            } else {
+                                                $korekturaFileUrl = "https://urlslab-delivery.s3.eu-central-1.amazonaws.com/flow_attachments/$workspaceId/$flowId/$sessionId/$fileName";
+                                            }
                                             $korekturaFileName = $fileName;
 
                                             echo "\n✓ Found korektura file: $fileName\n";
