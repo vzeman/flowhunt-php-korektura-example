@@ -7,6 +7,7 @@ use FlowHunt\Configuration;
 use FlowHunt\Api\FlowsApi;
 use FlowHunt\Model\FlowSessionCreateFromFlowRequest;
 use FlowHunt\Model\FlowSessionInvokeRequest;
+use FlowHunt\Model\FlowSessionArtefactInfo;
 use GuzzleHttp\Client;
 
 // Load environment variables
@@ -178,18 +179,20 @@ EOT;
 
                             if ($artefacts && is_array($artefacts)) {
                                 foreach ($artefacts as $artefact) {
-                                    if (method_exists($artefact, 'getName')) {
+                                    // Check if artifact is a FlowSessionArtefactInfo instance
+                                    if ($artefact instanceof FlowSessionArtefactInfo) {
                                         $fileName = $artefact->getName();
 
                                         // Check if this is the korektura file
                                         if (stripos($fileName, 'korektura') !== false) {
-                                            // Use SDK's download URL if available, otherwise construct manually
-                                            if (method_exists($artefact, 'getDownloadUrl') && $artefact->getDownloadUrl()) {
-                                                $korekturaFileUrl = $artefact->getDownloadUrl();
+                                            // Get download URL from SDK
+                                            $downloadUrl = $artefact->getDownloadUrl();
+                                            if ($downloadUrl) {
+                                                $korekturaFileUrl = $downloadUrl;
+                                                $korekturaFileName = $fileName;
                                             } else {
-                                                $korekturaFileUrl = "https://urlslab-delivery.s3.eu-central-1.amazonaws.com/flow_attachments/$workspaceId/$flowId/$sessionId/$fileName";
+                                                echo "\n⚠ Warning: Korektura file found but download URL is empty\n";
                                             }
-                                            $korekturaFileName = $fileName;
 
                                             echo "\n✓ Found korektura file: $fileName\n";
                                             break 2; // Break out of both foreach loops
